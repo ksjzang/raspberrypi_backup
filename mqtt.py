@@ -18,13 +18,12 @@ def on_connect(client, userdata, flags, rc):
 
 # 콜백 함수: 메시지 수신
 def on_message(client, userdata, msg):
+    global recv_message
     try:
         # 메시지 디코딩 및 JSON 파싱
         decoded_msg = msg.payload.decode('utf-8')
-        data = json.loads(decoded_msg)
-        print(f"Received: {data}")
-        if isinstance(data, list) and len(data) == 3:
-            print(f"Client ID: {data[0]}, Type: {data[1]}, Command: {data[2]}")
+        recv_message = json.loads(decoded_msg)
+        print(f"Received: {recv_message}")
     except Exception as e:
         print(f"Failed to process message: {e}")
 
@@ -58,6 +57,9 @@ try:
         publish_message(topic, message)
         counter += 1
         time.sleep(5)  # 5초 간격으로 발행
+        if recv_message[1]=='D':
+            print('Received message D!!')
+            break
 except KeyboardInterrupt:
     print("Publisher stopped.")
     client.loop_stop()  # 네트워크 루프 중지
