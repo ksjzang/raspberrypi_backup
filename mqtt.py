@@ -6,7 +6,7 @@ import time
 broker = "192.168.137.253"  # MQTT 브로커 IP
 port = 1883                 # 기본 포트
 topic = "handson"
-client_id='raspi'
+client_id = 'raspi'
 
 # MQTT 클라이언트 생성
 client = mqtt.Client(client_id)
@@ -23,12 +23,12 @@ def on_message(client, userdata, msg):
         decoded_msg = msg.payload.decode('utf-8')
         data = json.loads(decoded_msg)
         print(f"Received: {data}")
-        if isinstance(data, list) and len(data) == 2:
-            print(f"Client ID: {data[0]}, Command: {data[1]}")
+        if isinstance(data, list) and len(data) == 3:
+            print(f"Client ID: {data[0]}, Type: {data[1]}, Command: {data[2]}")
     except Exception as e:
         print(f"Failed to process message: {e}")
 
-#메세지 송신
+# 메세지 송신
 def publish_message(topic, message):
     """MQTT 메시지 발행 함수"""
     try:
@@ -47,9 +47,8 @@ client.on_message = on_message
 client.connect(broker, port)
 print("Connected to MQTT Broker")
 
-# 메시지 수신 대기
-print("Listening for messages...")
-client.loop_forever()
+# 네트워크 루프 시작 (비차단 방식)
+client.loop_start()
 
 # 주기적으로 메시지 발행
 try:
@@ -61,4 +60,5 @@ try:
         time.sleep(5)  # 5초 간격으로 발행
 except KeyboardInterrupt:
     print("Publisher stopped.")
+    client.loop_stop()  # 네트워크 루프 중지
     client.disconnect()
