@@ -4,11 +4,11 @@ import numpy as np
 import time
 
 def decision(x):
-    if (100 < x <= 120) or (30 <= x < 50):
+    if 80 < x <= 240:
         return 'f'
-    elif 50 <= x <= 100:
+    elif x <= 80:
         return 'l'
-    elif 50 <= x <= 100:
+    elif 240<x:
         return 'r'
     else:
         return 'b'
@@ -20,8 +20,7 @@ def make_black(image, threshold=140):
     black_image = cv2.inRange(inverted_gray, threshold, 255)
     return black_image, gray_image
 
-def find_contour_center_and_draw(gray, x_range=80, y_range=160):
-    center = 120
+def find_contour_center_and_draw(gray, original_image, x_range=80, y_range=160):
     crop_gray = gray[:, :]
     blur = cv2.GaussianBlur(crop_gray, (5, 5), 0)
     _, thresh = cv2.threshold(blur, 123, 255, cv2.THRESH_BINARY_INV)
@@ -40,15 +39,12 @@ def find_contour_center_and_draw(gray, x_range=80, y_range=160):
             cx = int(M['m10'] / M['m00'])
             cy = int(M['m01'] / M['m00'])
 
-            # 윤곽선 외곽 사각형 그리기
+            # 윤곽선 외곽 사각형 그리기 (컬러 이미지에 표시)
             x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(crop_gray, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(original_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            # 디버깅용 시각화 (중심점 및 윤곽선 표시)
-            cv2.line(crop_gray, (cx, 0), (cx, crop_gray.shape[0]), (255, 0, 0), 1)
-            cv2.line(crop_gray, (0, cy), (crop_gray.shape[1], cy), (255, 0, 0), 1)
-            cv2.drawContours(crop_gray, contours, -1, (0, 255, 0), 1)
-            cv2.imshow('mask', mask)
+            # 중심점 시각화
+            cv2.circle(original_image, (cx, cy), 5, (255, 0, 0), -1)
 
             print(f"Contour center: {cx}, Bounding Box: x={x}, y={y}, w={w}, h={h}")
             return cx
@@ -76,11 +72,14 @@ try:
         # 그레이스케일 및 임계값 적용
         black_image, gray = make_black(frame_bgr_flipped)
 
-        # 중심 결정 및 방향 결정
-        cx = find_contour_center_and_draw(black_image)
+        # 중심 결정 및 방향 결정 (컬러 이미지에 윤곽선 표시)
+        cx = find_contour_center_and_draw(black_image, frame_bgr_flipped)
         if cx is not None:
             key = decision(cx)
             print(f"Decision: {key}")
+
+        # 디버깅용 컬러 화면 출력
+        cv2.imshow('Processed Frame', frame_bgr_flipped)
 
         # 종료 조건
         if cv2.waitKey(1) & 0xFF == ord('q'):
