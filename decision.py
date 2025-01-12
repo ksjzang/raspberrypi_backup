@@ -20,7 +20,7 @@ def make_black(image, threshold=140):
     black_image = cv2.inRange(inverted_gray, threshold, 255)
     return black_image, gray_image
 
-def find_contour_center_and_draw(gray, original_image, x_range=80, y_range=160):
+def find_contour_center_and_draw(gray, original_image):
     crop_gray = gray[:, :]
     blur = cv2.GaussianBlur(crop_gray, (5, 5), 0)
     _, thresh = cv2.threshold(blur, 123, 255, cv2.THRESH_BINARY_INV)
@@ -39,16 +39,16 @@ def find_contour_center_and_draw(gray, original_image, x_range=80, y_range=160):
             cx = int(M['m10'] / M['m00'])
             cy = int(M['m01'] / M['m00'])
 
-            # 윤곽선 외곽 사각형 그리기 (컬러 이미지에 표시)
-            x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(original_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            # 윤곽선 그리기 (테두리)
+            cv2.polylines(original_image, [c], isClosed=True, color=(0, 255, 0), thickness=2)
 
             # 중심점 시각화
             cv2.circle(original_image, (cx, cy), 5, (255, 0, 0), -1)
 
-            print(f"Contour center: {cx}, Bounding Box: x={x}, y={y}, w={w}, h={h}")
+            print(f"Contour center: {cx}")
             return cx
     return None
+
 
 # Picamera2 초기화
 picam2 = Picamera2()
